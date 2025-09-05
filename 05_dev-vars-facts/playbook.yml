@@ -1,0 +1,18 @@
+---
+- name: Install Apache and starts the service
+  hosts: webserver
+  tasks:
+    - name: Install the required package
+      yum:
+        name: "{{ ansible_local.custom.general.package }}"
+        state: latest
+    - name: Start the service
+      service:
+        name: "{{ ansible_local.custom.general.service }}"
+        state: "{{ ansible_local.custom.general.state }}"
+    - name: Open the service with firewall
+      firewalld:
+        service: "{{ ansible_local.custom.general.fwsvc }}"
+        permanent: yes
+        immediate: no
+        state: enabled

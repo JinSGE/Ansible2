@@ -1,0 +1,17 @@
+---
+timesync_ntp_servers:
+  - hostname: kr.pool.ntp.org
+    iburst: true
+# EXAMPLES:
+# - name: Manage timesync with 3 servers
+#   hosts: targets
+#   vars:
+#     timesync_ntp_servers:
+#       - hostname: foo.example.com
+#         iburst: true
+#       - hostname: bar.example.com
+#         iburst: true
+#       - hostname: baz.example.com
+#         iburst: true
+#   roles:
+#     - rhel-system-roles.timesync

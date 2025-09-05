@@ -1,0 +1,56 @@
+---
+- name: 0) 작업 준비 - facts 준비
+  import_playbook: setup_facts.yml
+
+- name: Play 01) 여러 가지 변수 테스트
+  hosts: lamp
+  gather_facts: true
+  vars:
+    firewall: firewalld
+  vars_files:
+    - vars/main.yml
+  tasks:
+    ###########################################
+    # 1) 서비스 패키지 설치 - mariadb-server, httpd
+    # 2) 서비스 기동 - mariadb, httpd
+    # 3) 방화벽 패키지 설치
+    # 4) 방화벽 서비스 기동
+    # 5) 방화벽 포트 등록
+    # 6) 웹페이지 생성 - /var/www/html/index.html
+    ###########################################
+    - name: 1) 서비스 패키지 설치 및 기동
+      # include_tasks 테스트
+      ansible.builtin.include_tasks: tasks/main.yml
+
+    - name: 2) 방화벽 패키지 설치
+      # vars 지시자 테스트
+      ansible.builtin.dnf:
+        name: "{{ firewall }}"
+        state: present
+    
+    - name: 3) 방화벽 서비스 기동
+      # vars 지시자 테스트
+      ansible.builtin.systemd:
+        name: "{{ firewall }}"
+        state: started
+        enabled: true
+
+    - name: 4) 방화벽 포트 등록 - http
+      # vars_files 지시자 테스트
+      ansible.posix.firewalld:
+        service: "{{ fw_port }}"
+        permanent: true
+        immediate: true
+        state: "{{ fw_state }}"
+
+    - name: 5) 웹페이지 생성 - /var/www/html/index.html
+      ansible.builtin.copy:
+      # facts 변수 테스트
+        content: |
+          <pre>
+          Hostname: {{ ansible_fqdn }}
+          IP: {{ ansible_default_ipv4.address }}
+          </pre>
+        dest: "{{ web_root }}/index.html"
+        mode: '0644'
+

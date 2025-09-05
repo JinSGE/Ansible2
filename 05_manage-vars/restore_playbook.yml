@@ -1,0 +1,50 @@
+---
+- name: Restore playbook.yml
+  hosts: lamp
+  gather_facts: true
+  vars:
+    firewall: firewalld
+  vars_files:
+    - vars/main.yml
+  tasks:
+    ###########################################
+    # 1) 방화벽 포트 제거 - http
+    # 2) 서비스 종료 - firewalld, mariadb, httpd
+    # 3) 서비스 설정 삭제 - /var/www/html/index.html
+    # 4) 패키지 삭제 - mariadb-server, httpd
+    # 5) 사용자 정의 팩트 삭제 - /etc/ansible/facts.d
+    ###########################################
+    - name: 1) 방화벽 포트 제거 - http
+      ansible.posix.firewalld:
+        service: "{{ fw_port }}"
+        permanent: true
+        immediate: true
+        state: disabled
+
+    - name: 2) 서비스 종료
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - "{{ firewall }}"
+        - "{{ ansible_local.custom.services.db_service }}"
+        - "{{ ansible_local.custom.services.web_service }}"
+
+    - name: 3) 서비스 설정 삭제 - /var/www/html/index.html
+      ansible.builtin.file:
+        path: "{{ web_root }}/index.html"
+        state: absent
+
+    - name: 4) 패키지 삭제 - httpd, mariadb-server
+      ansible.builtin.dnf:
+        name:
+          - "{{ ansible_local.custom.packages.db_package }}"
+          - "{{ ansible_local.custom.packages.web_package }}"
+        state: absent
+
+    - name: 5) 사용자 정의 팩트 삭제 - /etc/ansible/facts.d/*.fact
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: absent
+

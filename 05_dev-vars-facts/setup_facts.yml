@@ -1,0 +1,20 @@
+---
+- name: Deploy custom facts to remote servers
+  hosts: web1
+  become: true
+  tasks:
+    - name: Create facts directory
+      file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: "0755"
+
+    - name: Copy custom.fact to remote
+      copy:
+        src: custom.fact
+        dest: /etc/ansible/facts.d/custom.fact
+        mode: "0644"
+
+    - name: Gather facts again to load custom facts
+      setup:
+        filter: ansible_local

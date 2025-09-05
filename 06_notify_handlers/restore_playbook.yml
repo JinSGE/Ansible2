@@ -1,0 +1,26 @@
+---
+- name: DB 제거 작업
+  hosts: databases
+  remote_user: root
+  vars: 
+    pkg_db:
+      - mariadb-server
+      - python3-PyMySQL
+    svc_db: mariadb
+    conf_get_url: 'http://control/my.cnf.standard'
+    conf_mysql: '/etc/my.cnf'
+  tasks: 
+    ##################################################
+    # 1) DB 서비스 중지 - mariadb
+    # 2) DB 패키지 삭제 - mariadb-server, python3-PyMySQL
+    ##################################################
+    - name: 1) DB 서비스 중지 - mariadb
+      ansible.builtin.systemd:
+        name: "{{ svc_db }}"
+        state: stopped
+        enabled: false
+
+    - name: 2) DB 패키지 삭제 - mariadb-server, python3-PyMySQL
+      ansible.builtin.dnf:
+        name: "{{ pkg_db }}"
+        state: absent

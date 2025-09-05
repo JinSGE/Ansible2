@@ -1,0 +1,22 @@
+---
+- name: Restore use-vhost-role.yml
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: 가상 호스트 설정 역할
+      ansible.builtin.include_role:
+        name: rollback-svc
+      vars: 
+        fw_svc:
+          - http
+          - https
+        svcs:
+          - httpd
+          - firewalld
+        files:
+          - /etc/httpd/conf.d/vhost.conf
+          - /var/www/vhosts
+        pkgs:
+          - httpd
+          - mod_ssl
+          - firewalld

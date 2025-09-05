@@ -1,0 +1,12 @@
+# vars.list
+pkg_http_web: httpd
+pkg_https_web: mod_ssl
+pkg_fw: firewalld
+pkg_python: python3-PyMySQL
+basedir: /var/www/html
+indexfile: "{{ basedir }}/index.html"
+svc_web: httpd
+svc_fw: firewalld
+fw_80: http
+fw_443: https
+url: "http://192.168.10.11/"

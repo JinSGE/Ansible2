@@ -1,0 +1,79 @@
+---
+- name: 0) 작업 제어 실습
+  hosts: webservers
+  gather_facts: true
+  vars_files:
+    - vars/vars.yml
+  tasks:
+    ##############################################
+    # 0) 1. 메모리 점검 - MEM > 256 / 2. 배포판 점검 - CentOS
+    # 1) 패키지 설치 - {{ packages }} -> httpd, mod_ssl, firewalld
+    # 2) 서비스 기동 - {{ services }} -> httpd, firewalld
+    # 3) 웹 서버 설정 + (notify) 웹 서버 재시작
+    #   * /etc/pki/tls/certs/localhost.crt
+    #   * /etc/pki/tls/private/localhost.key
+    #   * /var/www/html/index.html
+    #   + 3가지 웹 서버 설정 등록 후 -> 웹 서버 재시작 
+    # 4) 방화벽 포트 등록 - {{ firewall_rules }} -> http, https
+    # 5) handlers 정의
+    #    + restart_web_service 기능 - {{ web_service }} -> httpd
+    ##############################################
+    - name: 0) 첫 번째 점검 / 1. 메모리 - MEM > 256 + 2. 배포판 - CentOS
+      ansible.builtin.fail:
+        msg: "[ FAIL ] 메모리가 256M 보다 작거나 CentOS가 아닙니다."
+      when: >
+        ansible_memtotal_mb < min_ram_mb or
+        ansible_distribution != "CentOS"
+
+    - name: 0) 다른 점검 / 3. 배포판 버전 점검 - CentOS9
+      ansible.builtin.debug:
+        msg: "CentOS Stream 9버전에서만 동작합니다."
+      failed_when: ansible_distribution_version != "9"
+
+    - name: 1) 패키지 설치 - {{ packages }}
+      ansible.builtin.dnf:
+        name: "{{ packages }}"
+        state: present
+
+    - name: 2) 서비스 기동 - {{ services }}
+    # systemd 리스트 배열을 못받음. loop 사용.
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: "{{ services }}"
+
+    - name: Block ~ Rescue 구문
+      block:
+        - name: 3) 웹 서버 설정 보내기
+          # "{{ web_config_files }}" 안에 파일을 3번 loop해서 적용.
+          # * /etc/pki/tls/certs/localhost.crt 
+          # * /etc/pki/tls/private/localhost.key
+          # * /var/www/html/index.html
+          ansible.builtin.copy:
+            src: "{{ item.src }}"
+            dest: "{{ item.dest }}"
+            owner: "{{ item.owner }}"
+            group: "{{ item.group }}"
+            mode: "{{ item.mode | string }}"
+          loop: "{{ web_config_files }}"
+          notify: restart_web_service
+      rescue:
+        - name: 3) 웹 서버 설정 - 에러메세지 출력
+          ansible.builtin.debug:
+            msg: "[ FAIL ] 웹 서버 설정이 잘못 되었습니다."
+
+    - name: 4) 방화벽에 포트 등록
+      # firewalld 리스트 배열을 못받음. loop 사용.
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop: "{{ firewall_rules }}"
+
+  handlers:
+    - name: restart_web_service
+      ansible.builtin.systemd:
+        name: "{{ web_service }}"
+        state: restarted

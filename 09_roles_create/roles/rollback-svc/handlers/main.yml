@@ -1,0 +1,14 @@
+---
+# handlers file for roles/rollback-svcc
+
+- name: 서비스 종료 완료
+  debug:
+    msg: "서비스가 성공적으로 종료되었습니다."
+
+- name: 서비스 설정 삭제 완료
+  debug:
+    msg: "서비스 설정 파일이 성공적으로 삭제되었습니다."
+
+- name: 패키지 삭제 완료
+  debug:
+    msg: "패키지가 성공적으로 삭제되었습니다."

@@ -1,0 +1,13 @@
+---
+- name: Restore create_user.yml
+  hosts: webservers
+  vars_files:
+    - secret2.yml
+
+  tasks:
+    - name: 1) 사용자 삭제
+      ansible.builtin.user:
+        name: "{{ username }}"
+        state: absent
+        remove: true
+

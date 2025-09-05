@@ -1,0 +1,5 @@
+---
+# defaults file for myfirewall
+
+# 아래 잘못된 설정을 그대로 사용한다.
+firewall_service: ssh

@@ -1,0 +1,23 @@
+---
+- name: NTP 구성 - Asia/Seoul 시간 동기화
+  hosts: datacenters
+  tasks:  
+    - name: 1) 타임 존 설정
+      community.general.timezone:
+        name: Asia/Seoul
+      notify: restart chrony
+
+    - name: 2) NTP 서버에 시간 동기화
+      ansible.builtin.include_role:
+        name: rhel-system-roles.timesync
+        
+  handlers:
+    - name: restart chrony
+      ansible.builtin.systemd:
+        name: chronyd
+        state: restarted
+
+# EXAMPLES:
+# - name: Set timezone to Asia/Tokyo
+#   community.general.timezone:
+#     name: Asia/Tokyo

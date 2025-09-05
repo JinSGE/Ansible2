@@ -1,0 +1,28 @@
+---
+- name: 1) 방화벽 포트 닫기 - "{{ fw_svc }}"
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    state: absent
+    permanent: true
+    immediate: true
+  loop: "{{ fw_svc }}"
+  ignore_errors: true
+
+- name: 2) 서비스 중지 및 비활성화 - "{{ svcs }}"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ svcs }}"
+  ignore_errors: true
+
+- name: 3) 웹 인덱스 파일 제거 - "{{ files }}"
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ files }}"
+  
+- name: 4) 웹 패키지 제거 - "{{ pkgs }}"
+  ansible.builtin.dnf:
+    name: "{{ pkgs }}"
+    state: absent

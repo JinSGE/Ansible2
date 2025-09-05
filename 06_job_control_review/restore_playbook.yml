@@ -1,0 +1,53 @@
+---
+- name: 웹서버 복원 실습
+  hosts: webservers
+  gather_facts: true
+  vars_files:
+    - vars/vars.yml
+  tasks:
+    ##############################################
+    # 0) 1. 메모리 점검 - MEM > 256 / 2. 배포판 점검 - CentOS
+    # 1) 방화벽 포트 제거 - {{ firewall_rules }} -> http, https
+    # 2) 서비스 종료 - {{ services }} -> firewalld, httpd
+    # 3) 웹 설정 삭제 - /var/www/html/index.html
+    # 4) 웹 패키지 삭제 - {{ packages }} -> httpd, mod_ssl
+    ##############################################
+    - name: 0) 첫 번째 점검 / 1. 메모리 - MEM > 256 + 2. 배포판 - CentOS
+      ansible.builtin.fail:
+        msg: "[ FAIL ] 메모리가 256M 보다 작거나 CentOS가 아닙니다."
+      # when: 구문에서 >는 긴 줄을 두줄로 나눠쓸수있게 하기 위함.
+      when: >
+        ansible_memtotal_mb < min_ram_mb or
+        ansible_distribution != "CentOS"
+
+    - name: 0) 다른 점검 / 3. 배포판 버전 점검 - CentOS9
+      ansible.builtin.debug:
+        msg: "CentOS Stream 9버전에서만 동작합니다."
+      failed_when: ansible_distribution_version != "9"
+
+    - name: 1) 방화벽에서 포트 제거 - {{ firewall_rules }}
+      # firewalld 리스트 배열을 못받음. loop 사용.
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: disabled
+      loop: "{{ firewall_rules }}"
+
+    - name: 2) 서비스 종료 - {{ services }}
+      # systemd 리스트 배열을 못받음. loop 사용.
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop: "{{ services }}"
+
+    - name: 3) 웹 설정 삭제 - /var/www/html/index.html
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: 4) 웹 패키지 삭제 - {{ packages }}
+      ansible.builtin.dnf:
+        name: "{{ packages }}"
+        state: absent

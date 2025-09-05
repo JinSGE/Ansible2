@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: yes
+  tasks:
+    - debug: msg="{{ ansible_hostname }}"
+    - debug: msg="{{ ansible_facts['hostname'] }}"
+
+    - debug: msg="{{ ansible_bios_version }}"
+    - debug: msg="{{ ansible_facts['bios_version'] }}"
+
+    - debug: msg="{{ ansible_memtotal_mb }}"
+    - debug: msg="{{ ansible_facts['memtotal_mb'] }}"
+
+    - debug: msg="{{ ansible_devices.sda.size }}"
+    - debug: msg="{{ ansible_facts['devices']['sda']['size'] }}"
+

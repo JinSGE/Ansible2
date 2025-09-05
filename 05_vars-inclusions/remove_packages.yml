@@ -1,0 +1,6 @@
+---
+# 패키지를 파일 참조해서 변수로 패키지 삭제
+- name: 패키지 삭제 - {{ packages }}
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: absent

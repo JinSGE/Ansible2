@@ -1,0 +1,10 @@
+---
+- name: SELinux 설정 변경
+  hosts: all
+  tasks: 
+    - name: SELinux 모드 변경 - permissive => enforcing
+      ansible.posix.selinux:
+        policy: targeted
+        state: enforcing
+
+# ans ansible1.example.com -a 'sestatus'

@@ -1,0 +1,5 @@
+---
+web_root: /var/www/html
+fw_port: http
+fw_state: enabled
+

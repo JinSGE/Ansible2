@@ -1,0 +1,4 @@
+---
+# 패키지 이름 참조 파일
+package:
+  web_pkg: httpd

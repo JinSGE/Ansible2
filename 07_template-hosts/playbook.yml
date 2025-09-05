@@ -1,0 +1,20 @@
+---
+- name: 0) /etc/hosts 파일 배포
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: 1) 관리 호스트에 /etc/hosts 파일 배포
+      ansible.builtin.template:
+        src: templates/hosts.j2
+        dest: /root/hosts
+        owner: root
+        group: root
+        mode: '0644'
+
+# ans all -m debug -a 'var=groups'
+# ans all -m debug -a 'var=groups["all"]'
+# ans all -m debug -a 'var=hostvars'
+# ans all -m debug -a 'var=hostvars["ansible1.example.com"]'
+# ans all -m debug -a 'var=hostvars["ansible1.example.com"]["ansible_ssh_host"]'
+# ans all -m debug -a 'var=hostvars["ansible1.example.com"]["inventory_hostname"]'
+# ans all -m debug -a 'var=hostvars["ansible1.example.com"]["inventory_hostname_short"]'

@@ -1,0 +1,31 @@
+---
+- name: Restore intranet.yml
+  hosts: all
+  tasks:
+    - name: 1) 방화벽 제거 - httpd
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: disabled
+      ignore_errors: true
+
+    - name: 2) 서비스 중지 - (service, systemd) httpd, firewalld
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - httpd
+        - firewalld
+      ignore_errors: true
+
+    - name: 3) 파일 삭제 - (file) /var/www/html/index.html
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: 4) 패키지 삭제 - (yum, dnf) httpd
+      ansible.builtin.dnf:
+        name: httpd
+        state: absent

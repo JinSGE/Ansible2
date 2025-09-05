@@ -1,0 +1,41 @@
+---
+- name: Play3 - 웹서버 해제
+  hosts: webserver
+  become: true
+  vars_files:
+    - vars/vars.yml
+
+  tasks:
+    - name: 1) 방화벽 제거 - {{ fw_80 }}, {{ fw_443 }}
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: disabled
+      loop:
+        - "{{ fw_80 }}"
+        - "{{ fw_443 }}"
+      ignore_errors: true
+      
+    - name: 2) httpd 서비스 중지 및 비활성화 - {{ svc_web }}, {{ svc_fw }}
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - "{{ svc_web }}"
+        - "{{ svc_fw }}"
+      ignore_errors: true
+
+    - name: 3) /var/www/html/index.html 파일 삭제 - {{ indexfile }}
+      ansible.builtin.file:
+        path: "{{ indexfile }}"
+        state: absent
+
+    - name: 4) httpd 패키지 제거 - {{ pkg_http_web }}, {{ pkg_https_web }}, {{ pkg_python }}
+      ansible.builtin.yum:
+        name:
+          - "{{ pkg_http_web }}"
+          - "{{ pkg_https_web }}"
+          - "{{ pkg_python }}"
+        state: absent
